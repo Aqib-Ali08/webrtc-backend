@@ -15,14 +15,14 @@ const app = express();
 const server = http.createServer(app); // Create HTTP server
 const io = new Server(server, {
   cors: {
-    origin: "https://webrtc-video-app-9kfp.onrender.com", // Allow your frontend origin
+    origin: "https://webrtc-video-app-1.onrender.com", // Allow your frontend origin
     methods: ["GET", "POST"],
   },
 });
 
 // Configure CORS for Express
 app.use(cors({
-  origin: "https://webrtc-video-app-9kfp.onrender.com", // Allow your frontend origin
+  origin: "https://webrtc-video-app-1.onrender.com", // Allow your frontend origin
 }));
 app.use(bodyParser.json());
 
