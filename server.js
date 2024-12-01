@@ -15,15 +15,12 @@ const app = express();
 const server = http.createServer(app); // Create HTTP server
 const io = new Server(server, {
   cors: {
-    origin: "https://web-rtc-video-app-omega.vercel.app", // Allow your frontend origin
+    origin: "https://web-rtc-video-app-aqib-ali08s-projects.vercel.app/", // Adjust this based on your frontend
     methods: ["GET", "POST"],
-  },
+  }
 });
 
-// Configure CORS for Express
-app.use(cors({
-  origin: "https://web-rtc-video-app-omega.vercel.app", // Allow your frontend origin
-}));
+app.use(cors());
 app.use(bodyParser.json());
 
 // MongoDB Connection
@@ -93,3 +90,4 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
