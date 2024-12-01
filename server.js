@@ -15,12 +15,15 @@ const app = express();
 const server = http.createServer(app); // Create HTTP server
 const io = new Server(server, {
   cors: {
-    origin: "https://web-rtc-video-app-f6nm.vercel.app/", // Adjust this based on your frontend
+    origin: "https://web-rtc-video-app-f6nm.vercel.app/", // Allow your frontend origin
     methods: ["GET", "POST"],
-  }
+  },
 });
 
-app.use(cors());
+// Configure CORS for Express
+app.use(cors({
+  origin: "https://web-rtc-video-app-f6nm.vercel.app/", // Allow your frontend origin
+}));
 app.use(bodyParser.json());
 
 // MongoDB Connection
