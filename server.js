@@ -15,7 +15,7 @@ const app = express();
 const server = http.createServer(app); // Create HTTP server
 const io = new Server(server, {
   cors: {
-    origin: "https://web-rtc-video-app-aqib-ali08s-projects.vercel.app/", // Adjust this based on your frontend
+    origin: "https://web-rtc-video-app-f6nm.vercel.app/", // Adjust this based on your frontend
     methods: ["GET", "POST"],
   }
 });
