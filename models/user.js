@@ -15,6 +15,15 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
+  gender:{
+    type: String,
+    required: true,
+    enum:['Male','Female','Other']
+  },
+  profilePic: {
+    type: String,
+    default: "",
+  },
 });
 
 export default model("User", UserSchema);
