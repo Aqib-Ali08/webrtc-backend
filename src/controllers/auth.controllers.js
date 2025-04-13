@@ -70,10 +70,9 @@ const login = async (req, res) => {
     );
 
     // Get expiry times
-    const accessTokenExpiry = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 2; // 2 days from now
-
+    const accessTokenExpiry = Date.now() + 1000 * 60 * 60 * 24 * 2; // 2 days from now in ms
     res.json({
-      user:username,
+      user: username,
       token: accessToken,
       refreshToken,
       expiresAt: accessTokenExpiry,
