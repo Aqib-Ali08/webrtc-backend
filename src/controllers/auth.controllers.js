@@ -1,31 +1,40 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import USER from '../models/user.model.js';
+import User from '../models/user.model.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET_KEY;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+
+
 const register = async (req, res) => {
   try {
-    const { full_name, username, password } = req.body;
+    const { full_name, username, password, profilePic } = req.body;
 
     if (!full_name || !username || !password) {
       return res.status(400).send('Name, username, and password are required');
     }
 
     // Check if username already exists
-    const existingUser = await USER.findOne({ username });
+    const existingUser = await User.findOne({ username });
     if (existingUser) {
-      return res.status(409).send('username already exists');
+      return res.status(409).send('Username already exists');
     }
 
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = new USER({
+    // Create new user
+    const newUser = new User({
       full_name,
       username,
-      password: hashedPassword
+      password: hashedPassword,
+      profilePic: profilePic || "", // Optional
+      friends: [],
+      sentRequests: [],
+      receivedRequests: [],
+      blockedUsers: []
     });
 
     await newUser.save();
@@ -37,6 +46,9 @@ const register = async (req, res) => {
   }
 };
 
+export default register;
+
+
 const login = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -45,7 +57,7 @@ const login = async (req, res) => {
       return res.status(400).send('Username and password are required');
     }
 
-    const user = await USER.findOne({ username });
+    const user = await User.findOne({ username });
     if (!user) {
       return res.status(404).send('User not found');
     }
