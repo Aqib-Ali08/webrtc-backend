@@ -70,6 +70,7 @@ export const getAllUsers = async (req, res) => {
       const userId = user._id.toString();
       let status = 'none';
 
+      // Assign status based on relationship
       if (receivedRequestIds.has(userId)) {
         status = 'received';
       } else if (sentRequestIds.has(userId)) {
@@ -87,24 +88,34 @@ export const getAllUsers = async (req, res) => {
         profilePic: user.profilePic,
         status
       };
-    })
-    // Now remove the users who are already in receivedRequests, sentRequests, friends, or blockedUsers
-    .filter(user => user.status === 'none');
+    });
+
+    // Categorize users into the different groups
+    const addNewConnection = filteredUsers.filter(user => user.status === 'none');
+    const receivedRequests = filteredUsers.filter(user => user.status === 'sent');
+    const connectionManagement = filteredUsers.filter(user => user.status === 'friend');
 
     res.status(200).json({
-      users: filteredUsers,
-      currentUserData: {
-        sentRequests: currentUser.sentRequests,
-        receivedRequests: currentUser.receivedRequests,
-        friends: currentUser.friends,
-        blockedUsers: currentUser.blockedUsers
+      status: 'success',
+      data: {
+        addNewConnection,
+        receivedRequests,
+        connectionManagement
       },
+      // currentUserData: {
+      //   sentRequests: currentUser.sentRequests,
+      //   receivedRequests: currentUser.receivedRequests,
+      //   friends: currentUser.friends,
+      //   blockedUsers: currentUser.blockedUsers
+      // },
     });
   } catch (error) {
     console.error('Error in getAllUsers:', error);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
 
 export const acceptFriendRequest = async (req, res) => {
   const currentUserId = req.user.id;
