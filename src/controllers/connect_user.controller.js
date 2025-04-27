@@ -92,13 +92,15 @@ export const getAllUsers = async (req, res) => {
 
     // Categorize users into the different groups
     const addNewConnection = filteredUsers.filter(user => user.status === 'none');
-    const receivedRequests = filteredUsers.filter(user => user.status === 'sent');
+    const sentRequests = filteredUsers.filter(user => user.status === 'sent');
+    const receivedRequests = filteredUsers.filter(user => user.status === 'received');
     const connectionManagement = filteredUsers.filter(user => user.status === 'friend');
 
     res.status(200).json({
       status: 'success',
       data: {
         addNewConnection,
+        sentRequests,
         receivedRequests,
         connectionManagement
       },
