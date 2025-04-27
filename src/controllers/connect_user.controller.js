@@ -150,23 +150,70 @@ export const acceptFriendRequest = async (req, res) => {
 // Cancel/Delete Friend Request
 export const cancelFriendRequest = async (req, res) => {
   const currentUserId = req.user.id;
-  const targetUserId = req.body.senderId;
+  const targetUserId = req.body.senderId; // Sender means who sent the request to current user
 
   try {
     const currentUser = await User.findById(currentUserId);
     const targetUser = await User.findById(targetUserId);
 
-    currentUser.sentRequests = currentUser.sentRequests.filter(id => id.toString() !== targetUserId);
-    targetUser.receivedRequests = targetUser.receivedRequests.filter(id => id.toString() !== currentUserId);
+    if (!currentUser || !targetUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log('Before cancelling:');
+    console.log('currentUser.receivedRequests:', currentUser.receivedRequests);
+    console.log('targetUser.sentRequests:', targetUser.sentRequests);
+
+    // Remove targetUserId from currentUser.receivedRequests
+    currentUser.receivedRequests = currentUser.receivedRequests.filter(
+      id => id.toString() !== targetUserId
+    );
+
+    // Remove currentUserId from targetUser.sentRequests
+    targetUser.sentRequests = targetUser.sentRequests.filter(
+      id => id.toString() !== currentUserId
+    );
+
+    console.log('After cancelling:');
+    console.log('currentUser.receivedRequests:', currentUser.receivedRequests);
+    console.log('targetUser.sentRequests:', targetUser.sentRequests);
 
     await currentUser.save();
     await targetUser.save();
 
     res.status(200).json({ message: 'Friend request cancelled/deleted' });
   } catch (err) {
+    console.error('Error cancelling friend request:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+
+// export const cancelFriendRequest = async (req, res) => {
+//   try {
+//     const currentUserId = req.user.id; // Current logged-in user
+//     const targetUserId = req.body.senderId; // The other user (who sent the request)
+
+//     if (!mongoose.Types.ObjectId.isValid(currentUserId) || !mongoose.Types.ObjectId.isValid(targetUserId)) {
+//       return res.status(400).json({ message: "Invalid user ID" });
+//     }
+
+//     // Perform $pull to remove IDs from sentRequests and receivedRequests directly
+//     await Promise.all([
+//       User.findByIdAndUpdate(currentUserId, {
+//         $pull: { sentRequests: targetUserId }
+//       }),
+//       User.findByIdAndUpdate(targetUserId, {
+//         $pull: { receivedRequests: currentUserId }
+//       })
+//     ]);
+
+//     res.status(200).json({ message: "Friend request cancelled/deleted" });
+//   } catch (error) {
+//     console.error("Error cancelling friend request:", error);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
 
 // Block/Unblock User
 export const toggleBlockUser = async (req, res) => {
