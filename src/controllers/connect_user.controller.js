@@ -44,33 +44,42 @@ export const getAllUsers = async (req, res) => {
     const currentUserId = req.user.id; // Get the ID of the currently authenticated user
 
     // Fetch all users except the current user
-    const users = await User.find({ _id: { $ne: currentUserId } }).select('full_name username profilePic');
+    const usersRaw = await User.find({ _id: { $ne: currentUserId } }).select('full_name username profilePic');
 
-    // Fetch current user's receivedRequests and friends
+    // Fetch current user's connections
     const currentUser = await User.findById(currentUserId)
-      .select('sentRequests receivedRequests friends blockedUsers')
-      .populate('sentRequests', 'full_name username profilePic')
-      .populate('receivedRequests', 'full_name username profilePic') // optional: populate receivedRequests users
-      .populate('friends', 'full_name username profilePic') // optional: populate friends users
-      .populate('blockedUsers', 'full_name username profilePic');
+      .select('sentRequests receivedRequests friends blockedUsers');
+
     if (!currentUser) {
       return res.status(404).json({ message: "Current user not found." });
     }
 
+    // Format users (change _id to id)
+    const users = usersRaw.map(user => ({
+      id: user._id,
+      full_name: user.full_name,
+      username: user.username,
+      profilePic: user.profilePic,
+    }));
+
+    // Prepare currentUserData (only IDs)
+    const currentUserData = {
+      sentRequestIds: currentUser.sentRequests.map(id => id.toString()),
+      receivedRequestIds: currentUser.receivedRequests.map(id => id.toString()),
+      friendIds: currentUser.friends.map(id => id.toString()),
+      blockedUserIds: currentUser.blockedUsers.map(id => id.toString()),
+    };
+
     res.status(200).json({
       users,
-      currentUserData: {
-        sentRequests:currentUser.sentRequests,
-        receivedRequests: currentUser.receivedRequests,
-        friends: currentUser.friends,
-        blockedUsers:currentUser.blockedUsers
-      },
+      currentUserData,
     });
   } catch (error) {
     console.error('Error in getAllUsers:', error);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 export const acceptFriendRequest = async (req, res) => {
   const currentUserId = req.user.id;
