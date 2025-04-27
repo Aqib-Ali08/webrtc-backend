@@ -41,29 +41,63 @@ export const sendFriendRequest = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try {
-    const currentUserId = req.user.id; // Get the ID of the currently authenticated user
+    const currentUserId = req.user.id;
 
     // Fetch all users except the current user
-    const users = await User.find({ _id: { $ne: currentUserId } }).select('full_name username profilePic');
+    const users = await User.find({ _id: { $ne: currentUserId } })
+      .select('full_name username profilePic');
 
-    // Fetch current user's receivedRequests and friends
+    // Fetch current user's relationships
     const currentUser = await User.findById(currentUserId)
       .select('sentRequests receivedRequests friends blockedUsers')
       .populate('sentRequests', 'full_name username profilePic')
-      .populate('receivedRequests', 'full_name username profilePic') // optional: populate receivedRequests users
-      .populate('friends', 'full_name username profilePic') // optional: populate friends users
+      .populate('receivedRequests', 'full_name username profilePic')
+      .populate('friends', 'full_name username profilePic')
       .populate('blockedUsers', 'full_name username profilePic');
+
     if (!currentUser) {
       return res.status(404).json({ message: "Current user not found." });
     }
 
+    // Create sets for quick lookup
+    const receivedRequestIds = new Set(currentUser.receivedRequests.map(user => user._id.toString()));
+    const sentRequestIds = new Set(currentUser.sentRequests.map(user => user._id.toString()));
+    const friendIds = new Set(currentUser.friends.map(user => user._id.toString()));
+    const blockedUserIds = new Set(currentUser.blockedUsers.map(user => user._id.toString()));
+
+    // Prepare the filtered users with status
+    const filteredUsers = users.map(user => {
+      const userId = user._id.toString();
+      let status = 'none';
+
+      if (receivedRequestIds.has(userId)) {
+        status = 'received';
+      } else if (sentRequestIds.has(userId)) {
+        status = 'sent';
+      } else if (friendIds.has(userId)) {
+        status = 'friend';
+      } else if (blockedUserIds.has(userId)) {
+        status = 'blocked';
+      }
+
+      return {
+        _id: user._id,
+        full_name: user.full_name,
+        username: user.username,
+        profilePic: user.profilePic,
+        status
+      };
+    })
+    // Now remove the users who are already in receivedRequests, sentRequests, friends, or blockedUsers
+    .filter(user => user.status === 'none');
+
     res.status(200).json({
-      users,
+      users: filteredUsers,
       currentUserData: {
-        sentRequests:currentUser.sentRequests,
+        sentRequests: currentUser.sentRequests,
         receivedRequests: currentUser.receivedRequests,
         friends: currentUser.friends,
-        blockedUsers:currentUser.blockedUsers
+        blockedUsers: currentUser.blockedUsers
       },
     });
   } catch (error) {
