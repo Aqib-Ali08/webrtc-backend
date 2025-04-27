@@ -39,21 +39,35 @@ export const sendFriendRequest = async (req, res) => {
   }
 };
 
-
 export const getAllUsers = async (req, res) => {
   try {
     const currentUserId = req.user.id; // Get the ID of the currently authenticated user
 
     // Fetch all users except the current user
-    const users = await User.find({ _id: { $ne: currentUserId } }).select('full_name username profilePic'); // Exclude password and other sensitive info
+    const users = await User.find({ _id: { $ne: currentUserId } }).select('full_name username profilePic');
 
-    if (users.length === 0) {
-      return res.status(404).json({ message: "No users found." });
+    // Fetch current user's receivedRequests and friends
+    const currentUser = await User.findById(currentUserId)
+      .select('sentRequests receivedRequests friends blockedUsers')
+      .populate('sentRequests', 'full_name username profilePic')
+      .populate('receivedRequests', 'full_name username profilePic') // optional: populate receivedRequests users
+      .populate('friends', 'full_name username profilePic') // optional: populate friends users
+      .populate('blockedUsers', 'full_name username profilePic');
+    if (!currentUser) {
+      return res.status(404).json({ message: "Current user not found." });
     }
 
-    res.status(200).json(users);
+    res.status(200).json({
+      users,
+      currentUserData: {
+        sentRequests:currentUser.sentRequests,
+        receivedRequests: currentUser.receivedRequests,
+        friends: currentUser.friends,
+        blockedUsers:currentUser.blockedUsers
+      },
+    });
   } catch (error) {
-    console.error('Error in getAllUsersExceptCurrent:', error);
+    console.error('Error in getAllUsers:', error);
     res.status(500).json({ message: "Server error" });
   }
 };
