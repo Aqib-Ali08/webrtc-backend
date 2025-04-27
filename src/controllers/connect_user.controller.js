@@ -150,7 +150,7 @@ export const acceptFriendRequest = async (req, res) => {
 // Cancel/Delete Friend Request
 export const cancelFriendRequest = async (req, res) => {
   const currentUserId = req.user.id;
-  const targetUserId = req.body.userId;
+  const targetUserId = req.body.senderId;
 
   try {
     const currentUser = await User.findById(currentUserId);
