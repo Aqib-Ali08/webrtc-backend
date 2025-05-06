@@ -189,54 +189,55 @@ export const cancelFriendRequest = async (req, res) => {
 };
 
 
-// export const cancelFriendRequest = async (req, res) => {
-//   try {
-//     const currentUserId = req.user.id; // Current logged-in user
-//     const targetUserId = req.body.senderId; // The other user (who sent the request)
-
-//     if (!mongoose.Types.ObjectId.isValid(currentUserId) || !mongoose.Types.ObjectId.isValid(targetUserId)) {
-//       return res.status(400).json({ message: "Invalid user ID" });
-//     }
-
-//     // Perform $pull to remove IDs from sentRequests and receivedRequests directly
-//     await Promise.all([
-//       User.findByIdAndUpdate(currentUserId, {
-//         $pull: { sentRequests: targetUserId }
-//       }),
-//       User.findByIdAndUpdate(targetUserId, {
-//         $pull: { receivedRequests: currentUserId }
-//       })
-//     ]);
-
-//     res.status(200).json({ message: "Friend request cancelled/deleted" });
-//   } catch (error) {
-//     console.error("Error cancelling friend request:", error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
 // Block/Unblock User
 export const toggleBlockUser = async (req, res) => {
   const currentUserId = req.user.id;
   const targetUserId = req.body.userId;
+  const actionType = req.body.action_type; // "BLOCK" or "UNBLOCK"
+
+  if (!["BLOCK", "UNBLOCK"].includes(actionType)) {
+    return res.status(400).json({ message: 'Invalid action_type. Must be "BLOCK" or "UNBLOCK".' });
+  }
 
   try {
     const currentUser = await User.findById(currentUserId);
+    const targetUser = await User.findById(targetUserId);
 
-    const isBlocked = currentUser.blockedUsers.includes(targetUserId);
-
-    if (isBlocked) {
-      currentUser.blockedUsers = currentUser.blockedUsers.filter(id => id.toString() !== targetUserId);
-      await currentUser.save();
-      return res.status(200).json({ message: 'User unblocked' });
-    } else {
-      // Remove any friend connection before blocking
-      currentUser.friends = currentUser.friends.filter(id => id.toString() !== targetUserId);
-      currentUser.blockedUsers.push(targetUserId);
-      await currentUser.save();
-      return res.status(200).json({ message: 'User blocked' });
+    if (!currentUser || !targetUser) {
+      return res.status(404).json({ message: 'User not found' });
     }
+
+    if (actionType === "UNBLOCK") {
+      // Remove from blocked users
+      currentUser.blockedUsers = currentUser.blockedUsers.filter(
+        id => id.toString() !== targetUserId
+      );
+      await currentUser.save();
+      return res.status(200).json({ message: 'User unblocked successfully' });
+    }
+
+    if (actionType === "BLOCK") {
+      // Remove mutual friendship
+      currentUser.friends = currentUser.friends.filter(
+        id => id.toString() !== targetUserId
+      );
+      targetUser.friends = targetUser.friends.filter(
+        id => id.toString() !== currentUserId
+      );
+
+      // Add to blocked users
+      if (!currentUser.blockedUsers.includes(targetUserId)) {
+        currentUser.blockedUsers.push(targetUserId);
+      }
+
+      await currentUser.save();
+      await targetUser.save();
+      return res.status(200).json({ message: 'User blocked successfully' });
+    }
+
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };
+
