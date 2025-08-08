@@ -1,26 +1,37 @@
-import { getIO } from '../config/socket.config.js';
-import { registerFriendSocketHandlers } from './friend.socket.js';
 import SocketEvents from '../constants/socketEvent.js';
-export const registerSocketEvents = () => {
-  const io = getIO();
+import { registerFriendSocketHandlers } from './friend.socket.js';
+import {
+  addUserSocket,
+  removeUserSocket,
+  getConnectedUsers
+} from '../utils/connectedUsers.js';
 
-  io.on(SocketEvents.CONNECTION, (socket) => {
-    const userId = socket.user?.id;
-    const username = socket.user?.username;
+export const registerSocketEvents = (socket, io) => {
+  const userId = socket.user?.id;
+  const username = socket.user?.username;
 
-    if (!userId) {
-      console.warn("⚠️ Socket connection without user ID");
-      return;
-    }
+  if (!userId) {
+    console.warn("⚠️ Socket connection without user ID");
+    return;
+  }
 
-    socket.join(userId); // ✅ Now userId is defined
-    console.log(`✅ Socket connected: ${username}`);
+  // Add to connected users
+  addUserSocket(userId, socket.id);
+  console.log(`✅ Connected: ${username} (${userId}) | Socket: ${socket.id}`);
+  console.log("👥 Connected users:", Object.fromEntries(
+    [...getConnectedUsers()].map(([uid, sockets]) => [uid, [...sockets]])
+  ));
 
-    registerFriendSocketHandlers(socket, io);
+  registerFriendSocketHandlers(socket, io);
 
-    socket.on(SocketEvents.DISCONNECT, () => {
-      console.log(`❌ Socket disconnected: ${userId}`);
-      io.emit(SocketEvents.PRESENCE_OFFLINE, { userId });
-    });
+  socket.on(SocketEvents.DISCONNECT, () => {
+    removeUserSocket(userId, socket.id);
+    console.log(`❌ Disconnected: ${username} (${userId}) | Socket: ${socket.id}`);
+    console.log("👥 Connected users:", Object.fromEntries(
+      [...getConnectedUsers()].map(([uid, sockets]) => [uid, [...sockets]])
+    ));
+
+    // You can emit presence updates to others here
+    // io.emit(SocketEvents.PRESENCE_OFFLINE, { userId });
   });
 };

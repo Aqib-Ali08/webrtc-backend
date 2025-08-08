@@ -5,42 +5,31 @@ import { registerSocketEvents } from '../sockets/index.socket.js';
 let io = null;
 
 export const setupSocketServer = (server) => {
-    io = new Server(server, {
-        cors: {
-            origin: process.env.SOCKET_CLIENT_URL,
-            methods: ['GET', 'POST'],
-        },
-    });
+  io = new Server(server, {
+    cors: {
+      origin: process.env.SOCKET_CLIENT_URL,
+      methods: ['GET', 'POST'],
+    },
+  });
 
-    // 🔐 Middleware for authentication
-    io.use((socket, next) => {
-        const token = socket.handshake.auth.token;
-
-        if (!token) {
-            return next(new Error('Authentication error: token missing'));
-        }
-
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY)
-            socket.user = decoded;
-            next();
-        } catch (err) {
-            console.error('Invalid token:', err.message);
-            return next(new Error('Authentication error: invalid token'));
-        }
-    });
-
-    // On connection
-    io.on('connection', (socket) => {
-        registerSocketEvents(socket);
-    });
-
-    return io;
-};
-
-export const getIO = () => {
-    if (!io) {
-        throw new Error('Socket.io not initialized!');
+  // Auth middleware
+  io.use((socket, next) => {
+    const token = socket.handshake.auth.token;
+    if (!token) return next(new Error('Token missing'));
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      socket.user = decoded;
+      // console.log(socket.id)
+      next();
+    } catch (err) {
+      return next(new Error('Invalid token'));
     }
-    return io;
+  });
+
+  // Only ONE listener now!
+  io.on('connection', (socket) => {
+    registerSocketEvents(socket, io); // ✅ Correct usage
+  });
+
+  return io;
 };
