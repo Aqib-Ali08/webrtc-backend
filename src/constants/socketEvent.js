@@ -12,9 +12,9 @@ const SocketEvents = {
   
     // Friend Request Events
     FRIEND_REQUEST_SENT: 'friend:requestSent',
-    FRIEND_REQUEST_RECEIVED: 'friend:requestReceived',
+    // FRIEND_REQUEST_RECEIVED: 'friend:requestReceived',
     FRIEND_REQUEST_ACCEPTED: 'friend:requestAccepted',
-    FRIEND_REQUEST_CANCELED: 'friend:requestCanceled',
+    // FRIEND_REQUEST_CANCELED: 'friend:requestCanceled',
   
     // Meeting Events
     MEETING_JOIN: 'meeting:join',

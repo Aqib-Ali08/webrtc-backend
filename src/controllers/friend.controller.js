@@ -161,3 +161,25 @@ export const toggleBlockUser = async (req, res) => {
   }
 };
 
+export const disconnectFriend = async (req, res) => {
+  const userId = req.user.id;
+  const targetUserId = req.body.targetUserId;
+
+  try {
+    await Promise.all([
+      User.findByIdAndUpdate(userId, {
+        $pull: { friends: targetUserId, blockedUsers: targetUserId }
+      }),
+      User.findByIdAndUpdate(targetUserId, {
+        $pull: { friends: userId, blockedUsers: userId }
+      })
+    ]);
+
+    res.status(200).json({ message: 'User removed successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
