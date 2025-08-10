@@ -12,9 +12,9 @@ export const registerFriendSocketHandlers = (socket, io) => {
     if (recipientSockets) {
       recipientSockets.forEach((socketId) => {
         io.to(socketId).emit(SocketEvents.NOTIFY, {
-          type: "FRIEND_REQUEST_SENT",
-          fromUserId: socket.user,
-          message,
+          type: "info",
+          fromUser: socket.user,
+          message: `${socket.user.full_name} has sent you a friend request.`,
           createdAt: new Date().toISOString(),
         });
       });
@@ -29,12 +29,12 @@ export const registerFriendSocketHandlers = (socket, io) => {
     console.log(`${userId} accepted friend request of ${toUserId}`);
 
     const recipientSockets = getConnectedUsers().get(toUserId);
-     if (recipientSockets) {
+    if (recipientSockets) {
       recipientSockets.forEach((socketId) => {
         io.to(socketId).emit(SocketEvents.NOTIFY, {
-          type: "FRIEND_REQUEST_ACCEPTED",
-          fromUserId: socket.user,
-          message,
+          type: "info",
+          fromUser: socket.user,
+          message: `${socket.user.full_name} has accepted your friend request.`,
           createdAt: new Date().toISOString(),
         });
       });

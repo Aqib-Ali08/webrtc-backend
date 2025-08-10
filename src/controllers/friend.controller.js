@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import User from "../models/user.model.js";
 
 export const sendFriendRequest = async (req, res) => {
@@ -119,6 +120,11 @@ export const toggleBlockUser = async (req, res) => {
     return res.status(400).json({ message: 'Invalid action_type. Must be "BLOCK" or "UNBLOCK".' });
   }
 
+  // Validate IDs
+  if (!mongoose.isValidObjectId(currentUserId) || !mongoose.isValidObjectId(targetUserId)) {
+    return res.status(400).json({ message: 'Invalid user ID(s).' });
+  }
+
   try {
     const currentUser = await User.findById(currentUserId);
     const targetUser = await User.findById(targetUserId);
@@ -133,25 +139,18 @@ export const toggleBlockUser = async (req, res) => {
         id => id.toString() !== targetUserId
       );
       await currentUser.save();
+
       return res.status(200).json({ message: 'User unblocked successfully' });
     }
 
     if (actionType === "BLOCK") {
-      // Remove mutual friendship
-      currentUser.friends = currentUser.friends.filter(
-        id => id.toString() !== targetUserId
-      );
-      targetUser.friends = targetUser.friends.filter(
-        id => id.toString() !== currentUserId
-      );
-
-      // Add to blocked users
+      // Add to blocked users if not already present
       if (!currentUser.blockedUsers.includes(targetUserId)) {
         currentUser.blockedUsers.push(targetUserId);
       }
 
       await currentUser.save();
-      await targetUser.save();
+
       return res.status(200).json({ message: 'User blocked successfully' });
     }
 
@@ -160,6 +159,7 @@ export const toggleBlockUser = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 export const disconnectFriend = async (req, res) => {
   const userId = req.user.id;

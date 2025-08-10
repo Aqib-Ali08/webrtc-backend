@@ -19,6 +19,7 @@ export const setupSocketServer = (server) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      console.log(`Socket connected with user: ${JSON.stringify(decoded)}`);
       socket.user = decoded;
       next();
     } catch (err) {

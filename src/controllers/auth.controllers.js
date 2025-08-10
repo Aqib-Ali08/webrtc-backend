@@ -69,7 +69,7 @@ const login = async (req, res) => {
 
     // Generate Access Token (expires in 1 hour)
     const accessToken = jwt.sign(
-      { id: user._id, username: user.username },
+      { id: user._id, username: user.username, full_name: user.full_name, profilePic: user.profilePic },
       JWT_SECRET,
       { expiresIn: '2d' } // Set to 2 days
     );
