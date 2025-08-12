@@ -6,6 +6,7 @@ import errorMiddleware from './middlewares/error.middleware.js';
 import authRoutes from "./routes/auth.routes.js"
 import userRoutes from "./routes/user.routes.js"
 import friendRoutes from "./routes/friend.routes.js"
+import searchRoutes from "./routes/search.routes.js"
 const app = express();
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.use(morgan('dev'));
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/connect', friendRoutes);
+app.use('/api/v1/search', searchRoutes);
 
 app.use(errorMiddleware);
 
