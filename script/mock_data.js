@@ -51,7 +51,29 @@ const createMockData = async () => {
       { full_name: 'Brady Scott', username: 'bradyscott', password: await hashPassword('password123'), profilePic: 'https://example.com/brady.jpg' },
       { full_name: 'Caitlin Mitchell', username: 'caitlinmitchell', password: await hashPassword('password123'), profilePic: 'https://example.com/caitlin.jpg' },
       { full_name: 'Derek Thompson', username: 'derekthompson', password: await hashPassword('password123'), profilePic: 'https://example.com/derek.jpg' },
-      { full_name: 'Ella Harris', username: 'ellaharris', password: await hashPassword('password123'), profilePic: 'https://example.com/ella.jpg' }
+      { full_name: 'Ella Harris', username: 'ellaharris', password: await hashPassword('password123'), profilePic: 'https://example.com/ella.jpg' },
+      { full_name: 'Finn Howard', username: 'finnhoward', password: await hashPassword('password123'), profilePic: 'https://example.com/finn.jpg' },
+      { full_name: 'Gabriel Foster', username: 'gabrielfoster', password: await hashPassword('password123'), profilePic: 'https://example.com/gabriel.jpg' },
+      { full_name: 'Hazel Bennett', username: 'hazelbennett', password: await hashPassword('password123'), profilePic: 'https://example.com/hazel.jpg' },
+      { full_name: 'Ian Brooks', username: 'ianbrooks', password: await hashPassword('password123'), profilePic: 'https://example.com/ian.jpg' },
+      { full_name: 'Jasmine Cole', username: 'jasminecole', password: await hashPassword('password123'), profilePic: 'https://example.com/jasmine.jpg' },
+      { full_name: 'Kevin Hughes', username: 'kevinhughes', password: await hashPassword('password123'), profilePic: 'https://example.com/kevin.jpg' },
+      { full_name: 'Luna Parker', username: 'lunaparker', password: await hashPassword('password123'), profilePic: 'https://example.com/luna.jpg' },
+      { full_name: 'Marcus Reed', username: 'marcusreed', password: await hashPassword('password123'), profilePic: 'https://example.com/marcus.jpg' },
+      { full_name: 'Nora Sanders', username: 'norasanders', password: await hashPassword('password123'), profilePic: 'https://example.com/nora.jpg' },
+      { full_name: 'Owen Baker', username: 'owenbaker', password: await hashPassword('password123'), profilePic: 'https://example.com/owen.jpg' },
+      { full_name: 'Paige Martinez', username: 'paigemartinez', password: await hashPassword('password123'), profilePic: 'https://example.com/paige.jpg' },
+      { full_name: 'Quincy Rogers', username: 'quincyrogers', password: await hashPassword('password123'), profilePic: 'https://example.com/quincy.jpg' },
+      { full_name: 'Ruby Bell', username: 'rubybell', password: await hashPassword('password123'), profilePic: 'https://example.com/ruby.jpg' },
+      { full_name: 'Samuel Price', username: 'samuelprice', password: await hashPassword('password123'), profilePic: 'https://example.com/samuel.jpg' },
+      { full_name: 'Tessa Griffin', username: 'tessagriffin', password: await hashPassword('password123'), profilePic: 'https://example.com/tessa.jpg' },
+      { full_name: 'Ulysses Kim', username: 'ulysseskim', password: await hashPassword('password123'), profilePic: 'https://example.com/ulysses.jpg' },
+      { full_name: 'Violet Hayes', username: 'violethayes', password: await hashPassword('password123'), profilePic: 'https://example.com/violet.jpg' },
+      { full_name: 'Wyatt Scott', username: 'wyattscott', password: await hashPassword('password123'), profilePic: 'https://example.com/wyatt.jpg' },
+      { full_name: 'Ximena Torres', username: 'ximenatorres', password: await hashPassword('password123'), profilePic: 'https://example.com/ximena.jpg' },
+      { full_name: 'Yusuf Ali', username: 'yusufali', password: await hashPassword('password123'), profilePic: 'https://example.com/yusuf.jpg' },
+      { full_name: 'Zoey Rivera', username: 'zoeyrivera', password: await hashPassword('password123'), profilePic: 'https://example.com/zoey.jpg' }
+
     ]);
 
     console.log('Mock data created successfully!');

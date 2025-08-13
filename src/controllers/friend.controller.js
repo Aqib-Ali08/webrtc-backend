@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import User from "../models/user.model.js";
+import Conversation from "../models/conversation.model.js";
 
 export const sendFriendRequest = async (req, res) => {
   try {
@@ -48,23 +49,45 @@ export const acceptFriendRequest = async (req, res) => {
     const currentUser = await User.findById(currentUserId);
     const senderUser = await User.findById(senderId);
 
+    // 1. Validate request exists
     if (!currentUser.receivedRequests.includes(senderId)) {
-      return res.status(400).json({ message: 'No such friend request' });
+      return res.status(400).json({ message: "No such friend request" });
     }
 
+    // 2. Update friend lists
     currentUser.friends.push(senderId);
     senderUser.friends.push(currentUserId);
 
-    currentUser.receivedRequests = currentUser.receivedRequests.filter(id => id.toString() !== senderId);
-    senderUser.sentRequests = senderUser.sentRequests.filter(id => id.toString() !== currentUserId);
+    // 3. Remove from pending requests
+    currentUser.receivedRequests = currentUser.receivedRequests.filter(
+      id => id.toString() !== senderId
+    );
+    senderUser.sentRequests = senderUser.sentRequests.filter(
+      id => id.toString() !== currentUserId
+    );
 
     await currentUser.save();
     await senderUser.save();
 
-    res.status(200).json({ message: 'Friend request accepted' });
+    // 4. Check if conversation already exists
+    const existingChat = await Conversation.findOne({
+      type: "direct",
+      participants: { $all: [currentUserId, senderId] }
+    });
+
+    // 5. Create new conversation if it doesn't exist
+    if (!existingChat) {
+      await Conversation.create({
+        type: "direct",
+        participants: [currentUserId, senderId],
+        createdBy: currentUserId
+      });
+    }
+
+    res.status(200).json({ message: "Friend request accepted" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Error accepting friend request:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 

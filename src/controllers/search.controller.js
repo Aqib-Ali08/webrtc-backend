@@ -18,7 +18,7 @@ export const SearchUserController = async (req, res) => {
         }
 
         const loggedInUser = await User.findById(loggedInUserId).select(
-            "friends sentRequests receivedRequests"
+            "friends sentRequests receivedRequests blockedUsers"
         );
 
         if (!loggedInUser) {
@@ -42,6 +42,7 @@ export const SearchUserController = async (req, res) => {
         const friendsSet = new Set(loggedInUser.friends.map(id => id.toString()));
         const sentReqSet = new Set(loggedInUser.sentRequests.map(id => id.toString()));
         const receivedReqSet = new Set(loggedInUser.receivedRequests.map(id => id.toString()));
+        const blockedSet = new Set(loggedInUser.blockedUsers.map(id => id.toString()));
 
         const resultsWithFlags = users.map(user => {
             const userIdStr = user._id.toString();
@@ -49,13 +50,16 @@ export const SearchUserController = async (req, res) => {
             const isFriend = friendsSet.has(userIdStr);
             const isSentRequest = sentReqSet.has(userIdStr);
             const hasRequestSentToU = receivedReqSet.has(userIdStr);
+            const isBlocked = blockedSet.has(userIdStr);
 
             return {
                 ...user.toObject(),
                 isFriend,
                 isSentRequest,
                 hasRequestSentToU,
-                canSendFriendRequest: !isFriend && !isSentRequest && !hasRequestSentToU,
+                isBlocked,
+                canSendFriendRequest:
+                    !isFriend && !isSentRequest && !hasRequestSentToU && !isBlocked,
             };
         });
 
