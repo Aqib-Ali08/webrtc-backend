@@ -25,8 +25,10 @@ export const list_other_users = async (req, res) => {
 
     const skip = (page - 1) * limit;
 
-    // Fetch logged-in user (for sentRequests)
-    const currentUser = await User.findById(userId).select("sentRequests");
+    // Fetch logged-in user (for relationships)
+    const currentUser = await User.findById(userId).select(
+      "sentRequests receivedRequests friends blockedUsers"
+    );
     if (!currentUser) {
       return res.status(StatusCodes.NOT_FOUND).json({
         status: "error",
@@ -34,15 +36,29 @@ export const list_other_users = async (req, res) => {
       });
     }
 
+    // Convert arrays to sets for fast lookup
+    const receivedIds = new Set(currentUser.receivedRequests.map(String));
+    const friendsIds = new Set(currentUser.friends.map(String));
+    const blockedIds = new Set(currentUser.blockedUsers.map(String));
     const sentRequestIds = new Set(currentUser.sentRequests.map(String));
 
-    // Fetch other users and total count in parallel
+    // Fetch users excluding receivedRequests, friends, blocked, and self
     const [users, totalUsers] = await Promise.all([
-      User.find({ _id: { $ne: userId } })
+      User.find({
+        _id: {
+          $ne: userId,
+          $nin: [...receivedIds, ...friendsIds, ...blockedIds],
+        },
+      })
         .select("full_name username profilePic")
         .skip(skip)
         .limit(limit),
-      User.countDocuments({ _id: { $ne: userId } })
+      User.countDocuments({
+        _id: {
+          $ne: userId,
+          $nin: [...receivedIds, ...friendsIds, ...blockedIds],
+        },
+      }),
     ]);
 
     // Add sentRequest boolean
@@ -67,6 +83,7 @@ export const list_other_users = async (req, res) => {
     });
   }
 };
+
 
 
 export const list_recieved_requests = async (req, res) => {
