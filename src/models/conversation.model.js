@@ -1,47 +1,52 @@
-// models/Conversation.js
 import mongoose from "mongoose";
 
-const { Schema } = mongoose;
-
-const conversationSchema = new Schema(
+const conversationSchema = new mongoose.Schema(
   {
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: () => new mongoose.Types.ObjectId(),
+      alias: "conversationId", // allows doc.conversationId access
+    },
     type: {
       type: String,
       enum: ["direct", "group"],
+      required: true,
       default: "direct",
-    },
-    name: {
-      type: String,
-      trim: true,
-      required: function () {
-        return this.type === "group";
-      },
     },
     participants: [
       {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
-      },
+      }
     ],
+    directKey: {
+      type: String, // user1Id_user2Id sorted
+      index: true,
+      sparse: true // only for direct chats
+    },
+    groupName: { type: String, trim: true, default: null },
+    groupAvatar: { type: String, default: null },
     lastMessage: {
-      type: Schema.Types.ObjectId,
-      ref: "Message",
-    },
-    createdBy: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Messages",
+      default: null
+    }
   },
-  {
-    timestamps: true, // adds createdAt & updatedAt
-  }
+  { timestamps: true }
 );
 
-// Optional: Prevent duplicate direct conversations
-conversationSchema.index(
-  { participants: 1 },
-  { unique: true, partialFilterExpression: { type: "direct" } }
-);
+// Make conversationId appear instead of _id
+conversationSchema.set("toJSON", {
+  virtuals: true,
+  versionKey: false,
+  transform: (_, ret) => {
+    ret.conversationId = ret._id;
+    delete ret._id;
+  }
+});
+
+// DirectKey must be unique for direct conversations
+conversationSchema.index({ directKey: 1 }, { unique: true, partialFilterExpression: { type: "direct" } });
 
 export default mongoose.model("Conversation", conversationSchema);

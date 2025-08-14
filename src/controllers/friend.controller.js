@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import Conversation from "../models/conversation.model.js";
+import Messages from "../models/messages.model.js";
 
 export const sendFriendRequest = async (req, res) => {
   try {
@@ -41,24 +42,36 @@ export const sendFriendRequest = async (req, res) => {
   }
 };
 
+
 export const acceptFriendRequest = async (req, res) => {
   const currentUserId = req.user.id;
   const senderId = req.body.senderId;
 
   try {
-    const currentUser = await User.findById(currentUserId);
-    const senderUser = await User.findById(senderId);
+    if (!senderId) {
+      return res.status(400).json({ message: "Sender ID is required" });
+    }
 
-    // 1. Validate request exists
+    const [currentUser, senderUser] = await Promise.all([
+      User.findById(currentUserId),
+      User.findById(senderId)
+    ]);
+
+    if (!currentUser || !senderUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     if (!currentUser.receivedRequests.includes(senderId)) {
       return res.status(400).json({ message: "No such friend request" });
     }
 
-    // 2. Update friend lists
-    currentUser.friends.push(senderId);
-    senderUser.friends.push(currentUserId);
+    if (!currentUser.friends.includes(senderId)) {
+      currentUser.friends.push(senderId);
+    }
+    if (!senderUser.friends.includes(currentUserId)) {
+      senderUser.friends.push(currentUserId);
+    }
 
-    // 3. Remove from pending requests
     currentUser.receivedRequests = currentUser.receivedRequests.filter(
       id => id.toString() !== senderId
     );
@@ -66,30 +79,48 @@ export const acceptFriendRequest = async (req, res) => {
       id => id.toString() !== currentUserId
     );
 
-    await currentUser.save();
-    await senderUser.save();
+    await Promise.all([currentUser.save(), senderUser.save()]);
 
-    // 4. Check if conversation already exists
-    const existingChat = await Conversation.findOne({
+    const directKey = [currentUserId.toString(), senderId.toString()]
+      .sort()
+      .join("_");
+
+    let conversation = await Conversation.findOne({
       type: "direct",
-      participants: { $all: [currentUserId, senderId] }
+      directKey
     });
 
-    // 5. Create new conversation if it doesn't exist
-    if (!existingChat) {
-      await Conversation.create({
+    if (!conversation) {
+      conversation = await Conversation.create({
         type: "direct",
         participants: [currentUserId, senderId],
-        createdBy: currentUserId
+        directKey
       });
+
+      // Create initial system message
+      const welcomeMessage = await Messages.create({
+        conversation: conversation._id,
+        sender: currentUserId, // or null if system message
+        content: `You are now friends`
+      });
+
+      // Link it as lastMessage
+      conversation.lastMessage = welcomeMessage._id;
+      await conversation.save();
     }
 
-    res.status(200).json({ message: "Friend request accepted" });
+    res.status(200).json({
+      message: "Friend request accepted",
+      conversationId: conversation.conversationId
+    });
+
   } catch (err) {
     console.error("Error accepting friend request:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
 
 // Cancel/Delete Friend Request
 export const cancelFriendRequest = async (req, res) => {

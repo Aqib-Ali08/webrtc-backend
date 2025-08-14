@@ -6,6 +6,6 @@ import express from 'express';
 const router = express.Router();
 
 
-router.get('/getChats', authenticateToken, getChats);
+router.get('/get_users_for_chats', authenticateToken, getChats);
 
 export default router;
