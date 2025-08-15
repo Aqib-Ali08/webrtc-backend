@@ -40,3 +40,36 @@ SERVER_CHAT_REACTION_REMOVE      // A reaction was removed
 // Presence
 SERVER_USER_ONLINE               // A user came online
 SERVER_USER_OFFLINE              // A user went offline
+
+User                Client App                 API Server               Socket Server
+ |                      |                           |                           |
+ |---Open App---------->|                           |                           |
+ |                      |---GET /conversations----->|                           |
+ |                      |<--list of conversations---|                           |
+ |                      |---Socket Connect------------------------------------->|
+ |                      |<--SERVER_USER_ONLINE / SERVER_USER_OFFLINE------------|
+ |                      |                           |                           |
+ |---Click conversation-|                           |                           |
+ |                      |---CLIENT_CHAT_LEAVE------>|                           |
+ |                      |---CLIENT_CHAT_JOIN----------------------------------->|
+ |                      |                           |                           |
+ |                      |---GET /messages?cid=123-->|                           |
+ |                      |<--messages history--------|                           |
+ |                      |<--SERVER_CHAT_RECEIVE (live new msgs)-----------------|
+ |                      |<--SERVER_CHAT_TYPING / SERVER_CHAT_STOP_TYPING--------|
+ |                      |<--SERVER_CHAT_REACTION_ADD / REMOVE-------------------|
+ |                      |                           |                           |
+ |---User starts typing-|---CLIENT_CHAT_TYPING--------------------------------->|
+ |---Stops typing-------|---CLIENT_CHAT_STOP_TYPING---------------------------->|
+ |                      |                           |                           |
+ |---Send message------>|---CLIENT_CHAT_SEND------------------------------------>|
+ |                      |<--SERVER_CHAT_RECEIVE---------------------------------|
+ |                      |                           |                           |
+ |---View message------>|---CLIENT_CHAT_READ------------------------------------>|
+ |                      |<--SERVER_CHAT_MESSAGE_STATUS--------------------------|
+ |                      |                           |                           |
+ |---React to message-->|---CLIENT_CHAT_REACTION_ADD---------------------------->|
+ |                      |<--SERVER_CHAT_REACTION_ADD----------------------------|
+ |                      |                           |                           |
+ |---Leave chat---------|---CLIENT_CHAT_LEAVE----------------------------------->|
+ |                      |                           |                           |
