@@ -1,0 +1,42 @@
+// Conversation
+CLIENT_CHAT_JOIN            // Request to join conversation room
+CLIENT_CHAT_LEAVE           // Request to leave conversation room
+
+// Messages
+CLIENT_CHAT_SEND            // Send a new message
+CLIENT_CHAT_EDIT            // Edit an existing message
+CLIENT_CHAT_DELETE          // Delete a message
+CLIENT_CHAT_READ            // Mark message as read
+
+// Typing
+CLIENT_CHAT_TYPING          // Start typing
+CLIENT_CHAT_STOP_TYPING     // Stop typing
+
+// Reactions
+CLIENT_CHAT_REACTION_ADD    // Add emoji reaction
+CLIENT_CHAT_REACTION_REMOVE // Remove emoji reaction
+
+ ===================================================
+ server socket events
+ ===================================================
+
+ // Conversation updates
+SERVER_CHAT_CONVERSATION_UPDATED // Name, avatar, or members updated
+SERVER_CHAT_MEMBER_JOINED        // A new member joined the chat
+SERVER_CHAT_MEMBER_LEFT          // A member left or was removed
+
+// Messages
+SERVER_CHAT_RECEIVE              // New message received
+SERVER_CHAT_MESSAGE_STATUS       // Delivery/read status updates
+
+// Typing indicators
+SERVER_CHAT_TYPING               // Someone is typing
+SERVER_CHAT_STOP_TYPING          // Someone stopped typing
+
+// Reactions
+SERVER_CHAT_REACTION_ADD         // A reaction was added to a message
+SERVER_CHAT_REACTION_REMOVE      // A reaction was removed
+
+// Presence
+SERVER_USER_ONLINE               // A user came online
+SERVER_USER_OFFLINE              // A user went offline

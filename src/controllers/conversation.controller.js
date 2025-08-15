@@ -1,5 +1,8 @@
+import Messages from "../models/messages.model.js";
 import Conversation from "../models/conversation.model.js";
-export const getChats = async (req, res) => {
+import mongoose from "mongoose";
+// it lists all the users that are friends of logged in user
+export const get_users_for_chats = async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -42,5 +45,38 @@ export const getChats = async (req, res) => {
   } catch (err) {
     console.error("Error fetching chats:", err);
     res.status(500).json({ message: "Internal Server error" });
+  }
+};
+
+export const get_users_chat_history = async (req, res) => {
+  try {
+    const { conversation_id } = req.query;
+    const userId = req.user.id;
+
+    if (!mongoose.isValidObjectId(conversation_id)) {
+      return res.status(400).json({ error: "Invalid conversation ID" });
+    }
+
+    const conversation = await Conversation.findOne({
+      _id: conversation_id,
+      participants: userId
+    });
+
+    if (!conversation) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    const totalMessages = await Messages.countDocuments({ conversation: conversation_id });
+
+    const messages = await Messages.find({ conversation: conversation_id })
+      .populate("sender", "_id name avatar")
+      .sort({ createdAt: -1 }) // newest first
+      .limit(totalMessages - 1) // exclude the last message
+      .lean();
+
+    res.status(200).json({ messages });
+  } catch (err) {
+    console.error("Error fetching chat history:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
