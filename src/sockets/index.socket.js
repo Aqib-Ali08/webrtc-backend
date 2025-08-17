@@ -6,12 +6,10 @@ import {
   getConnectedUsers,
   getUserSockets
 } from '../utils/connectedUsers.js';
-
-// Example helper to get relevant users (friends or shared chats)
 import { getRelevantUsersForPresence } from '../utils/presenceUtils.js';
 import { registerChatSocketHandlers } from './chat.socket.js';
 
-export const registerSocketEvents = (socket, io) => {
+export const registerSocketEvents = async (socket, io) => {
   const userId = socket.user?.id;
   const username = socket.user?.username;
 
@@ -23,12 +21,25 @@ export const registerSocketEvents = (socket, io) => {
   // Add to connected users and check if first connection
   const wasOffline = addUserSocket(userId, socket.id);
 
-  if (false) {
-    // First connection → notify relevant users only
-    const relevantUsers = getRelevantUsersForPresence(userId); // array of userIds
+  // Get relevant users (friends, shared chats, etc.)
+  const relevantUsers = await getRelevantUsersForPresence(userId);
 
-    (relevantUsers || []).forEach((uid) => {
-      getUserSockets(uid).forEach((socketId) => {
+  // 1️⃣ Send initial online users list to this user
+  const connectedUsersMap = getConnectedUsers(); // Map<userId, Set<socketIds>>
+  
+  const alreadyOnline = relevantUsers.filter(uid => connectedUsersMap.has(uid));
+
+  if (alreadyOnline.length > 0) {
+    io.to(socket.id).emit(SocketEvents.SERVER_PRESENCE_INIT, {
+      online_users: alreadyOnline
+    });
+  }
+
+  // 2️⃣ If this is first connection, notify relevant users you are online
+  if (wasOffline) {
+    relevantUsers.forEach((uid) => {
+      const sockets = getUserSockets(uid);
+      sockets.forEach((socketId) => {
         io.to(socketId).emit(SocketEvents.SERVER_USER_ONLINE, {
           user_id: userId,
           last_seen: null
@@ -45,13 +56,12 @@ export const registerSocketEvents = (socket, io) => {
   registerFriendSocketHandlers(socket, io);
   registerChatSocketHandlers(socket, io);
 
-  socket.on(SocketEvents.DISCONNECT, () => {
+  // 3️⃣ Handle disconnect
+  socket.on(SocketEvents.DISCONNECT, async () => {
     const isNowOffline = removeUserSocket(userId, socket.id);
 
     if (isNowOffline) {
-      // Last socket disconnected → notify relevant users only
-      const relevantUsers = getRelevantUsersForPresence(userId);
-
+      const relevantUsers = await getRelevantUsersForPresence(userId);
       relevantUsers.forEach((uid) => {
         getUserSockets(uid).forEach((socketId) => {
           io.to(socketId).emit(SocketEvents.SERVER_USER_OFFLINE, {

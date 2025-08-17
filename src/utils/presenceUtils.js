@@ -1,26 +1,17 @@
-import Conversation from '../models/conversation.model.js';
+import mongoose from "mongoose";
+import Conversation from "../models/conversation.model.js";
 
-/**
- * Returns an array of userIds who should receive presence updates
- * for the given userId (all participants in the same conversations, except self)
- */
 export const getRelevantUsersForPresence = async (userId) => {
   if (!userId) return [];
 
-  // Fetch all conversations where the user is a participant
-  const conversations = await Conversation.find({
-    participants: userId
-  }).select('participants').lean();
+  const userIdObj = new mongoose.Types.ObjectId(userId);
 
-  const relevantUserSet = new Set();
+  const result = await Conversation.aggregate([
+    { $match: { participants: userIdObj } },       // conversations where user is included
+    { $unwind: "$participants" },                  // flatten participants array
+    { $match: { participants: { $ne: userIdObj } } }, // remove self
+    { $group: { _id: null, users: { $addToSet: "$participants" } } } // dedupe
+  ]);
 
-  conversations.forEach(conv => {
-    conv.participants.forEach(participantId => {
-      if (participantId.toString() !== userId.toString()) {
-        relevantUserSet.add(participantId.toString());
-      }
-    });
-  });
-
-  return Array.from(relevantUserSet);
+  return result[0]?.users.map(u => u.toString()) || [];
 };
