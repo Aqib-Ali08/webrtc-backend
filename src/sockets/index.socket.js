@@ -23,7 +23,7 @@ export const registerSocketEvents = (socket, io) => {
   // Add to connected users and check if first connection
   const wasOffline = addUserSocket(userId, socket.id);
 
-  if (wasOffline) {
+  if (false) {
     // First connection → notify relevant users only
     const relevantUsers = getRelevantUsersForPresence(userId); // array of userIds
 
