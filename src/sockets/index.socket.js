@@ -9,6 +9,7 @@ import {
 
 // Example helper to get relevant users (friends or shared chats)
 import { getRelevantUsersForPresence } from '../utils/presenceUtils.js';
+import { registerChatSocketHandlers } from './chat.socket.js';
 
 export const registerSocketEvents = (socket, io) => {
   const userId = socket.user?.id;
@@ -26,7 +27,7 @@ export const registerSocketEvents = (socket, io) => {
     // First connection → notify relevant users only
     const relevantUsers = getRelevantUsersForPresence(userId); // array of userIds
 
-    relevantUsers.forEach((uid) => {
+    (relevantUsers || []).forEach((uid) => {
       getUserSockets(uid).forEach((socketId) => {
         io.to(socketId).emit(SocketEvents.SERVER_USER_ONLINE, {
           user_id: userId,
@@ -42,6 +43,7 @@ export const registerSocketEvents = (socket, io) => {
   ));
 
   registerFriendSocketHandlers(socket, io);
+  registerChatSocketHandlers(socket, io);
 
   socket.on(SocketEvents.DISCONNECT, () => {
     const isNowOffline = removeUserSocket(userId, socket.id);

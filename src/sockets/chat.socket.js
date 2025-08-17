@@ -1,12 +1,11 @@
 import SocketEvents from "../constants/socketEvent.js";
 import Conversation from "../models/conversation.model.js";
 
-export const registerFriendSocketHandlers = (socket, io) => {
+export const registerChatSocketHandlers = (socket, io) => {
   const userId = socket.user.id;
 
-  /**
-   * Join a conversation room silently
-   */
+
+  // Join a conversation room silently
   socket.on(SocketEvents.CLIENT_CHAT_JOIN, async ({ conversationId }) => {
     if (!conversationId) return;
 
@@ -28,9 +27,8 @@ export const registerFriendSocketHandlers = (socket, io) => {
     }
   });
 
-  /**
-   * Leave a conversation room silently
-   */
+
+  //  Leave a conversation room silently
   socket.on(SocketEvents.CLIENT_CHAT_LEAVE, ({ conversationId }) => {
     if (!conversationId) return;
 
