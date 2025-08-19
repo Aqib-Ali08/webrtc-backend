@@ -6,17 +6,29 @@ const messageSchema = new mongoose.Schema(
     sender: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
     conversation: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Conversation",
-      required: true
+      required: true,
     },
     content: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
+    readBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    deliveredTo: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );
