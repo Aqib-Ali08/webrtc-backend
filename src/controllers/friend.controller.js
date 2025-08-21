@@ -100,7 +100,7 @@ export const acceptFriendRequest = async (req, res) => {
       // Create initial system message
       const welcomeMessage = await Messages.create({
         conversation: conversation._id,
-        sender: currentUserId, // or null if system message
+        sender: null, // or null if system message
         content: `You are now friends`
       });
 

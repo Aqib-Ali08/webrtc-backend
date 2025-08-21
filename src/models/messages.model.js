@@ -3,6 +3,11 @@ import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
   {
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: () => new mongoose.Types.ObjectId(),
+      alias: "messageId", // allows doc.messageId access
+    },
     sender: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -18,12 +23,6 @@ const messageSchema = new mongoose.Schema(
       required: true,
     },
     readBy: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
-    deliveredTo: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

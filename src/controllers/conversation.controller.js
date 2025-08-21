@@ -74,7 +74,13 @@ export const get_users_chat_history = async (req, res) => {
       .limit(totalMessages - 1) // exclude the last message
       .lean();
 
-    res.status(200).json({ messages });
+    const formattedMessages = messages.map(msg => ({
+      message_id: msg._id,   // rename
+      ...msg,
+      _id: undefined         // remove old _id
+    }));
+
+    res.status(200).json({ messages: formattedMessages });
   } catch (err) {
     console.error("Error fetching chat history:", err);
     res.status(500).json({ error: "Server error" });

@@ -71,16 +71,27 @@ export const registerChatSocketHandlers = (socket, io) => {
         conversation: conversationId,
         sender: userId,
         content: text,
-        createdAt: new Date(),
       });
 
-      // Emit to all users in conversation (including sender)
-      io.to(`conversation_${conversationId}`).emit(SocketEvents.SERVER_CHAT_RECEIVE, {
-        _id: newMessage._id,
+      await Conversation.findByIdAndUpdate(
         conversationId,
-        sender: userId,
-        text,
+        { lastMessage: newMessage._id }
+      );
+
+      const formattedMessage = {
+        message_id: newMessage._id,
+        sender: {
+          _id: newMessage.sender,  // just the ObjectId
+        },
+        conversation: newMessage.conversation,
+        content: newMessage.content,
+        readBy: newMessage.readBy || [],
         createdAt: newMessage.createdAt,
+        updatedAt: newMessage.updatedAt,
+      };
+
+      io.to(`conversation_${conversationId}`).emit(SocketEvents.SERVER_CHAT_RECEIVE, {
+        recieved_message: formattedMessage
       });
 
       console.log(`💬 User ${userId} sent message in conversation ${conversationId}`);
