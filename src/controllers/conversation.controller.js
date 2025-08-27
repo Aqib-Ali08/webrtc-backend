@@ -10,12 +10,16 @@ export const get_users_for_chats = async (req, res) => {
       .populate("participants", "_id full_name profilePic")
       .populate({
         path: "lastMessage",
-        select: "_id content createdAt",
+        select: "_id content createdAt sender readBy", // 👈 include sender + readBy
+        populate: {
+          path: "sender",
+          select: "_id full_name profilePic", // 👈 optional: so you know who sent it
+        },
       })
       .sort({ updatedAt: -1 })
       .lean();
 
-    const formattedChats = chats.map(chat => {
+    const formattedChats = await Promise.all(chats.map(async chat => {
       const { _id, id, participants, directKey, ...rest } = chat;
 
       // Filter out logged-in user from participants
@@ -23,30 +27,41 @@ export const get_users_for_chats = async (req, res) => {
         p => p._id.toString() !== userId
       );
 
-      // Rename lastMessage._id -> message_id
+      // Format lastMessage
       let lastMessage = null;
       if (chat.lastMessage) {
-        const { _id: messageId, ...msgRest } = chat.lastMessage;
+        const { _id: messageId, content, createdAt, sender, readBy } = chat.lastMessage;
+
         lastMessage = {
-          message_id: messageId,
-          ...msgRest
+          messageId,
+          content,
+          createdAt,
+          sender,
+          readBy,
+          status: readBy.includes(userId) ? "read" : "unread", // 👈 derive status for current user
         };
       }
-
+      const unreadCount = await Messages.countDocuments({
+        conversation: chat._id,
+        sender: { $ne: userId }, // only messages from others
+        readBy: { $ne: userId }, // user hasn’t read
+      });
       return {
-        conversation_id: _id, // renamed
+        conversationId: _id, // renamed
         participants: otherParticipants,
         ...rest,
-        lastMessage
+        lastMessage,
+        unreadCount
       };
-    });
-
+    })
+    )
     res.json(formattedChats);
   } catch (err) {
     console.error("Error fetching chats:", err);
     res.status(500).json({ message: "Internal Server error" });
   }
 };
+
 
 export const get_users_chat_history = async (req, res) => {
   try {
@@ -71,9 +86,9 @@ export const get_users_chat_history = async (req, res) => {
     const messages = await Messages.find({ conversation: conversation_id })
       .populate("sender", "_id name avatar")
       .sort({ createdAt: -1 }) // newest first
-      .limit(totalMessages - 1) // exclude the last message
       .lean();
-
+    // .skip(offset)           
+    // .limit(limit)
     const formattedMessages = messages.map(msg => ({
       message_id: msg._id,   // rename
       ...msg,

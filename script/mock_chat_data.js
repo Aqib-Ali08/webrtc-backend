@@ -14,7 +14,7 @@ const senderId = "689c9573b034b4fd97056fd0"; // your user id
 
 const dummyMessages = [];
 
-for (let i = 1; i <= 20; i++) {
+for (let i = 1; i <=2; i++) {
     dummyMessages.push({
         sender: senderId,
         conversation: conversationId,

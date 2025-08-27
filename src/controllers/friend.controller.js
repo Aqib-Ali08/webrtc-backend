@@ -96,17 +96,16 @@ export const acceptFriendRequest = async (req, res) => {
         participants: [currentUserId, senderId],
         directKey
       });
-
-      // Create initial system message
-      const welcomeMessage = await Messages.create({
-        conversation: conversation._id,
-        sender: null, // or null if system message
-        content: `You are now friends`
-      });
-
-      // Link it as lastMessage
-      conversation.lastMessage = welcomeMessage._id;
-      await conversation.save();
+      /************* handled by frontend******************* */
+      // // Create initial system message
+      // const welcomeMessage = await Messages.create({
+      //   conversation: conversation._id,
+      //   sender: null, // or null if system message
+      //   content: `You are now friends`
+      // });
+      // // Link it as lastMessage
+      // conversation.lastMessage = welcomeMessage._id;
+      // await conversation.save();
     }
 
     res.status(200).json({

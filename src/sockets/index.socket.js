@@ -8,6 +8,7 @@ import {
 } from '../utils/connectedUsers.js';
 import { getRelevantUsersForPresence } from '../utils/presenceUtils.js';
 import { registerChatSocketHandlers } from './chat.socket.js';
+import Conversation from '../models/conversation.model.js'; // 🔹 Import your Conversation model
 
 export const registerSocketEvents = async (socket, io) => {
   const userId = socket.user?.id;
@@ -26,7 +27,7 @@ export const registerSocketEvents = async (socket, io) => {
 
   // 1️⃣ Send initial online users list to this user
   const connectedUsersMap = getConnectedUsers(); // Map<userId, Set<socketIds>>
-  
+
   const alreadyOnline = relevantUsers.filter(uid => connectedUsersMap.has(uid));
 
   if (alreadyOnline.length > 0) {
@@ -48,15 +49,30 @@ export const registerSocketEvents = async (socket, io) => {
     });
   }
 
+  // 3️⃣ Auto-join all conversation rooms for this user
+  try {
+    const conversations = await Conversation.find({ participants: userId }).select("_id");
+
+    conversations.forEach(conv => {
+      const conversationId = conv._id.toString(); // ✅ extract id
+      socket.join(`conversation_${conversationId}`);
+    });
+
+    console.log(`💬 ${username} joined ${conversations.length} conversations`);
+  } catch (err) {
+    console.error("❌ Error joining conversations:", err);
+  }
+
+
   console.log(`✅ Connected: ${username} (${userId}) | Socket: ${socket.id}`);
   console.log("👥 Connected users:", Object.fromEntries(
-    [...getConnectedUsers()].map(([uid, sockets]) => [uid, [...sockets]])
-  ));
+    [...getConnectedUsers()].map(([uid, sockets]) => [uid, [...sockets]]))
+  );
 
   registerFriendSocketHandlers(socket, io);
   registerChatSocketHandlers(socket, io);
 
-  // 3️⃣ Handle disconnect
+  // 4️⃣ Handle disconnect
   socket.on(SocketEvents.DISCONNECT, async () => {
     const isNowOffline = removeUserSocket(userId, socket.id);
 
@@ -74,7 +90,7 @@ export const registerSocketEvents = async (socket, io) => {
 
     console.log(`❌ Disconnected: ${username} (${userId}) | Socket: ${socket.id}`);
     console.log("👥 Connected users:", Object.fromEntries(
-      [...getConnectedUsers()].map(([uid, sockets]) => [uid, [...sockets]])
-    ));
+      [...getConnectedUsers()].map(([uid, sockets]) => [uid, [...sockets]]))
+    );
   });
 };
