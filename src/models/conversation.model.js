@@ -5,7 +5,7 @@ const conversationSchema = new mongoose.Schema(
     _id: {
       type: mongoose.Schema.Types.ObjectId,
       default: () => new mongoose.Types.ObjectId(),
-      alias: "conversationId", // allows doc.conversationId access
+      alias: "conversationId",
     },
     type: {
       type: String,
@@ -31,6 +31,13 @@ const conversationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Messages",
       default: null
+    },
+
+    // 🔒 Block/Unblock (only for direct chats)
+    blockedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null // null => no block, otherwise holds userId of blocker
     }
   },
   { timestamps: true }
@@ -47,6 +54,9 @@ conversationSchema.set("toJSON", {
 });
 
 // DirectKey must be unique for direct conversations
-conversationSchema.index({ directKey: 1 }, { unique: true, partialFilterExpression: { type: "direct" } });
+conversationSchema.index(
+  { directKey: 1 },
+  { unique: true, partialFilterExpression: { type: "direct" } }
+);
 
 export default mongoose.model("Conversation", conversationSchema);

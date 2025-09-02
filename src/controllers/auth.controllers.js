@@ -85,6 +85,8 @@ const login = async (req, res) => {
     const accessTokenExpiry = Date.now() + 1000 * 60 * 60 * 24 * 2; // 2 days from now in ms
     res.json({
       user: username,
+      name: user.full_name,
+      profilePic: user.profilePic,
       token: accessToken,
       refreshToken,
       expiresAt: accessTokenExpiry,

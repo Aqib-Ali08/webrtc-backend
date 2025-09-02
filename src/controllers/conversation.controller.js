@@ -101,3 +101,66 @@ export const get_users_chat_history = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+export const toggleChatBlockUnblock = async (req, res) => {
+  try {
+    const { conversationId } = req.body;
+    const userId = req.user.id;
+
+    if (!mongoose.isValidObjectId(conversationId)) {
+      return res.status(400).json({ error: "Invalid conversation ID" });
+    }
+
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
+      type: "direct",
+      participants: userId
+    });
+
+    if (!conversation) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    if (conversation.blockedBy && conversation.blockedBy.toString() === userId) {
+      // 🔓 Unblock
+      conversation.blockedBy = null;
+      await conversation.save();
+      return res.json({ message: "User unblocked" });
+    } else if (!conversation.blockedBy) {
+      // 🔒 Block
+      conversation.blockedBy = userId;
+      await conversation.save();
+      return res.json({ message: "User blocked" });
+    } else {
+      // Other user has already blocked
+      return res.status(400).json({ error: "The other user has already blocked you" });
+    }
+  } catch (err) {
+    console.error("Error toggling block/unblock:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+export const ClearChatHistoryController=async(req,res)=>{
+  try {
+    const { conversationId } = req.body;
+    const userId = req.user.id;
+    if (!mongoose.isValidObjectId(conversationId)) {
+      return res.status(400).json({ error: "Invalid conversation ID" });
+    }
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
+      participants: userId
+    });
+    if (!conversation) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    await Messages.deleteMany({ conversation: conversationId });
+    conversation.lastMessage = null;
+    await conversation.save();
+    res.json({ message: "Chat history cleared" });
+  }
+  catch (err) {
+    console.error("Error clearing chat history:", err);
+    res.status(500).json({ error: "Server error" });
+  } 
+}
