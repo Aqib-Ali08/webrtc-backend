@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.get('/get_users_for_chats', authenticateToken, get_users_for_chats);
 router.get('/get_users_chat_history', authenticateToken, get_users_chat_history);
-router.post('/get_users_block_status', authenticateToken, get_user_block_status);
+router.get('/get_users_block_status', authenticateToken, get_user_block_status);
 router.post('/toggle_chat_block_unblock', authenticateToken, toggleChatBlockUnblock);
 router.post('/clear_chat_history', authenticateToken, ClearChatHistoryController);
 router.post('/delete_message', authenticateToken, deleteMessage);

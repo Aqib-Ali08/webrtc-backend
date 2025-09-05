@@ -103,13 +103,13 @@ export const get_users_chat_history = async (req, res) => {
 };
 export const get_user_block_status = async (req, res) => {
   try {
-    const { conversationId } = req.query;
+    const { conversation_id } = req.query;
     const userId = req.user.id;
-    if (!mongoose.isValidObjectId(conversationId)) {
+    if (!mongoose.isValidObjectId(conversation_id)) {
       return res.status(400).json({ error: "Invalid conversation ID" });
     }
     const conversation = await Conversation.findOne({
-      _id: conversationId,
+      _id: conversation_id,
       type: "direct",
       participants: userId
     });
