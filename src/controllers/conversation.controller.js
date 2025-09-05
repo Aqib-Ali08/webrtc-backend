@@ -101,6 +101,33 @@ export const get_users_chat_history = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+export const get_user_block_status = async (req, res) => {
+  try {
+    const { conversationId } = req.query;
+    const userId = req.user.id;
+    if (!mongoose.isValidObjectId(conversationId)) {
+      return res.status(400).json({ error: "Invalid conversation ID" });
+    }
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
+      type: "direct",
+      participants: userId
+    });
+    if (!conversation) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    if (conversation.blockedBy && conversation.blockedBy.toString() === userId) {
+      return res.json({ isBlocked: true, blockedBy: "you" });
+    } else if (conversation.blockedBy && conversation.blockedBy.toString() !== userId) {
+      return res.json({ isBlocked: true, blockedBy: "other" });
+    } else {
+      return res.json({ isBlocked: false });
+    }
+  } catch (err) {
+    console.error("Error fetching block status:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+}
 export const toggleChatBlockUnblock = async (req, res) => {
   try {
     const { conversationId } = req.body;
