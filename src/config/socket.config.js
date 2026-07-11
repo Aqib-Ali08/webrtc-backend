@@ -35,3 +35,5 @@ export const setupSocketServer = (server) => {
 
   return io;
 };
+
+export const getIO = () => io;

@@ -1,6 +1,7 @@
 import Messages from "../models/messages.model.js";
 import Conversation from "../models/conversation.model.js";
 import mongoose from "mongoose";
+import { getIO } from "../config/socket.config.js";
 // it lists all the users that are friends of logged in user
 export const get_users_for_chats = async (req, res) => {
   try {
@@ -227,6 +228,17 @@ export const deleteMessage = async (req, res) => {
         return res.status(403).json({ error: "Only sender can delete for all" });
       }
       await Messages.findByIdAndDelete(messageId);
+
+      // Emit socket event to notify other participants
+      const io = getIO();
+      if (io) {
+        io.to(`conversation_${message.conversation._id}`).emit("server:chat:deleteMessage", {
+          conversationId: message.conversation._id,
+          messageId,
+          actionType: "deleteForAll"
+        });
+      }
+
       return res.json({ message: "Message deleted for everyone" });
     }
 
