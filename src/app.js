@@ -8,6 +8,8 @@ import userRoutes from "./routes/user.routes.js"
 import friendRoutes from "./routes/friend.routes.js"
 import searchRoutes from "./routes/search.routes.js"
 import chatsRoutes from "./routes/chat.routes.js"
+import noteRoutes from "./routes/note.routes.js"
+import notificationRoutes from "./routes/notification.routes.js"
 const app = express();
 
 dotenv.config();
@@ -28,6 +30,8 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/connect', friendRoutes);
 app.use('/api/v1/search', searchRoutes);
 app.use('/api/v1/chats', chatsRoutes);
+app.use('/api/v1/notes', noteRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 app.use(errorMiddleware);
 
