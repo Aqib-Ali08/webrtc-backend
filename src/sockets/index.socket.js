@@ -8,6 +8,7 @@ import {
 } from '../utils/connectedUsers.js';
 import { getRelevantUsersForPresence } from '../utils/presenceUtils.js';
 import { registerChatSocketHandlers } from './chat.socket.js';
+import { registerMeetingSocketHandlers } from './meeting.socket.js';
 import Conversation from '../models/conversation.model.js'; // 🔹 Import your Conversation model
 
 export const registerSocketEvents = async (socket, io) => {
@@ -71,6 +72,7 @@ export const registerSocketEvents = async (socket, io) => {
 
   registerFriendSocketHandlers(socket, io);
   registerChatSocketHandlers(socket, io);
+  registerMeetingSocketHandlers(socket, io);
 
   // 4️⃣ Handle disconnect
   socket.on(SocketEvents.DISCONNECT, async () => {
