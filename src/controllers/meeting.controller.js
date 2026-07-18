@@ -130,3 +130,74 @@ export const getMeetingByRoomId = async (req, res, next) => {
         next(error);
     }
 };
+
+// @desc    Update a meeting
+// @route   PUT /api/v1/meetings/:id
+// @access  Private
+export const updateMeeting = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { title, startTime, endTime, members } = req.body;
+        const userId = req.user.id;
+
+        const meeting = await Meeting.findById(id);
+        
+        if (!meeting) {
+            return res.status(404).json({ success: false, message: "Meeting not found" });
+        }
+
+        if (meeting.creator.toString() !== userId) {
+            return res.status(403).json({ success: false, message: "Only the creator can update the meeting" });
+        }
+
+        const meetingMembers = members ? [...new Set([...members, userId])] : meeting.members;
+
+        meeting.title = title || meeting.title;
+        meeting.startTime = startTime || meeting.startTime;
+        meeting.endTime = endTime || meeting.endTime;
+        meeting.members = meetingMembers;
+
+        await meeting.save();
+
+        const updatedMeeting = await Meeting.findById(id)
+            .populate("creator", "full_name username profilePic")
+            .populate("members", "full_name username profilePic");
+
+        return res.status(200).json({
+            success: true,
+            data: updatedMeeting,
+            message: "Meeting updated successfully"
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Delete a meeting
+// @route   DELETE /api/v1/meetings/:id
+// @access  Private
+export const deleteMeeting = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        const meeting = await Meeting.findById(id);
+
+        if (!meeting) {
+            return res.status(404).json({ success: false, message: "Meeting not found" });
+        }
+
+        if (meeting.creator.toString() !== userId) {
+            return res.status(403).json({ success: false, message: "Only the creator can delete the meeting" });
+        }
+
+        await Meeting.findByIdAndDelete(id);
+
+        return res.status(200).json({
+            success: true,
+            message: "Meeting deleted successfully"
+        });
+    } catch (error) {
+        next(error);
+    }
+};
